@@ -37,7 +37,7 @@ def decompile(source_dir, output_dir):
         t.start()
         # p = subprocess.Popen(["<Path to Decompiler>", "<Decompile Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY DECOMPILE STUFF??
         time.sleep(5)
-        p.wait() # Wait for subprocess to finish executin
+        # p.wait() # Wait for subprocess to finish executin
         # Condition Variable for "Loading" process
         global done
         done = True
@@ -64,7 +64,7 @@ def compile(source_dir, output_dir):
         t.start()
         # p = subprocess.Popen(["<Path to Compiler>", "<Compile Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY COMPILE STUFF??
         time.sleep(5)
-        p.wait() # Wait for subprocess to finish executin
+        # p.wait() # Wait for subprocess to finish executin
         # Condition Variable for "Loading" process
         global done
         done = True
@@ -91,7 +91,7 @@ def obfuscate(source_dir, output_dir):
         t.start()
         # p = subprocess.Popen(["<Path to Obfuscator>", "<Obfuscator Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY OBFUSCATE STUFF??
         time.sleep(5)
-        p.wait() # Wait for subprocess to finish executin
+        # p.wait() # Wait for subprocess to finish executin
         # Condition Variable for "Loading" process
         global done
         done = True
