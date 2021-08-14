@@ -5,7 +5,7 @@ full: build run
 fullclean: clean build run
 
 build:
-		gcc -o $(executable_name) *.c
+		clang -o $(executable_name) *.c
 
 run:
 		./$(executable_name)
