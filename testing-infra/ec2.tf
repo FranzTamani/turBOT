@@ -1,5 +1,6 @@
 data "aws_ami" "amazon-linux-2" {
   most_recent = true
+  owners      = ["amazon"]
 
   filter {
     name   = "owner-alias"
@@ -12,12 +13,11 @@ data "aws_ami" "amazon-linux-2" {
   }
 }
 
-data "template_file" "user_data" {
-  template = file("${path.module}/user_data.txt")
-}
-
 resource "aws_instance" "instance" {
-  launch_template = aws_launch_template.template.arn
+  launch_template {
+    id      = aws_launch_template.template.id
+    version = "$Latest"
+  }
   tags = {
     Name = var.instance_name
   }
@@ -26,40 +26,36 @@ resource "aws_instance" "instance" {
 resource "aws_launch_template" "template" {
   name = "${var.instance_name}-launch-template"
 
-  block_device_mappings {
-    device_name = "/dev/sda1"
-
-    ebs {
-      volume_size = 10
-    }
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.allow_ssh.id]
   }
 
-  image_id        = data.aws_ami.amazon-linux-2.id
-  security_groups = [aws_security_group.allow_ssh]
-  key_name        = var.key_name
-  user_data       = filebase64("${path.module}/user_data.sh")
+  instance_type = "t2.micro"
+  image_id      = data.aws_ami.amazon-linux-2.id
+  key_name      = var.key_name
+  user_data     = filebase64("${path.module}/user_data.sh")
 }
 
 resource "aws_security_group" "allow_ssh" {
   name        = "Allow SSH"
   description = "Allow SSH inbound traffic"
+}
 
-  ingress = [
-    {
-      description = "Allow SSH Access"
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-  ]
+resource "aws_security_group_rule" "example" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.allow_ssh.id
+}
 
-  egress = [
-    {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-  ]
+resource "aws_security_group_rule" "allow_all" {
+  type              = "egress"
+  to_port           = 0
+  protocol          = "-1"
+  from_port         = 0
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.allow_ssh.id
 }
