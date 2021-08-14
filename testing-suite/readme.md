@@ -19,3 +19,9 @@ inside each folder will contain a:
 - makefile for compiling the binary fresh, if one so desires
 - source code
 - the binary itself
+
+## requirements
+- make
+- gcc
+- clang
+- [rustc](https://www.rust-lang.org/tools/install)

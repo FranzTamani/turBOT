@@ -1,4 +1,4 @@
-# test case 01 -- empty clang
+# test case 02 -- empty clang
 
 ## expected functionality
 exits with code 0
