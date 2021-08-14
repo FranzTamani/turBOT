@@ -114,9 +114,9 @@ def obfuscate(source_dir, output_dir):
         print("An error occured during the compilation proccess")   
 
 def main():
-    # print(sys.argv)
+    MAX_ARGS = 4
 
-    if len(sys.argv) > 4:
+    if len(sys.argv) > MAX_ARGS:
         print('You have specified too many arguments')
         sys.exit()
 
