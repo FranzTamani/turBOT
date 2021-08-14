@@ -22,20 +22,26 @@ def progress(message):
 
 def help():
     help_output = """
-    \rThis is the help command, put command definitions here!
+    \rUsage: turbot [option] [source/file/dir] [destination/file/dir]
+    \rOptions:
+    \r
+    \r help         : Print this help message and exit
+    \r disassemble  : Disassembles a specified executable into a given directory
+    \r obfuscate    : Obfuscates a specified x86 assembly file and saves the obfuscated assmbly file to a given directory
+    \r reassemble   : Reassembles a specified assembly file and saves the executable into a given directory
     """
     print(help_output)
 
-# Decompile, Compile and Obfuscate are similar atm for demo purposes.
+# Disassemble, Assmeble and Obfuscate are similar atm for demo purposes.
 # They will be moved to modules later on as they will get complex once integrated with their corresponding tools
-def decompile(source_dir, output_dir):
+def disassemble(source_dir, output_dir):
     try:
         if os.path.isfile(source_dir):
             print("File found")
         message = "Program is currently decompiling"
         t = threading.Thread(target=progress, args=(message,))
         t.start()
-        # p = subprocess.Popen(["<Path to Decompiler>", "<Decompile Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY DECOMPILE STUFF??
+        # p = subprocess.Popen(["<Path to Decompiler>", "<Disassemble Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY DISASSEMBLE STUFF??
         time.sleep(5)
         # p.wait() # Wait for subprocess to finish executin
         # Condition Variable for "Loading" process
@@ -44,25 +50,25 @@ def decompile(source_dir, output_dir):
 
         t.join()
 
-        # TODO: GET RID OF THIS SECTION ONCE WE HAVE DECOMPILATION ACTUALLY WORKING
+        # TODO: GET RID OF THIS SECTION ONCE WE HAVE DISASSEMBLY ACTUALLY WORKING
         with open(output_dir, 'w') as fp:
             fp.write("This is a sample File")
         
-        print(source_dir + " has been decompiled to " + output_dir)
+        print(source_dir + " has been disassembled to " + output_dir)
     except Exception as e:
         print(e)
         print("An error occured during the decompilation proccess")
 
-# Decompile, Compile and Obfuscate are similar atm for demo purposes.
+# Disassemble, Assmeble and Obfuscate are similar atm for demo purposes.
 # They will be moved to modules later on as they will get complex once integrated with their corresponding tools
-def compile(source_dir, output_dir): 
+def reassemble(source_dir, output_dir): 
     try:
         if os.path.isfile(source_dir):
             print("File found")
         message = "Program is currently compiling"
         t = threading.Thread(target=progress, args=(message,))
         t.start()
-        # p = subprocess.Popen(["<Path to Compiler>", "<Compile Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY COMPILE STUFF??
+        # p = subprocess.Popen(["<Path to Compiler>", "<Assmeble Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY COMPILE STUFF??
         time.sleep(5)
         # p.wait() # Wait for subprocess to finish executin
         # Condition Variable for "Loading" process
@@ -80,7 +86,7 @@ def compile(source_dir, output_dir):
         print(e)
         print("An error occured during the compilation proccess")        
 
-# Decompile, Compile and Obfuscate are similar atm for demo purposes.
+# Disassemble, Assmeble and Obfuscate are similar atm for demo purposes.
 # They will be moved to modules later on as they will get complex once integrated with their corresponding tools
 def obfuscate(source_dir, output_dir): 
     try:
@@ -122,17 +128,17 @@ def main():
     if sys.argv[1] == "help":
         help()
         sys.exit()
-    elif sys.argv[1] == "decompile":
+    elif sys.argv[1] == "disassemble":
         if len(sys.argv) == 4:
-            decompile(sys.argv[2], sys.argv[3])
+            disassemble(sys.argv[2], sys.argv[3])
         else:
-            print('Usage: decompile "decompile/file/bin.o" "decompile/to/bin.asm"')
+            print('Usage: disassemble "disassemble/file/bin.o" "disassemble/to/bin.asm"')
         sys.exit()
-    elif sys.argv[1] == "compile":
+    elif sys.argv[1] == "reassemble":
         if len(sys.argv) == 4:
-            compile(sys.argv[2], sys.argv[3])
+            reassemble(sys.argv[2], sys.argv[3])
         else:
-            print('Usage: decompile "decompile/file/bin.asm" "decompile/to/bin.o"')
+            print('Usage: reassemble "reassemble/file/bin.asm" "reassemble/to/bin.o"')
         sys.exit()
     elif sys.argv[1] == "obfuscate":
         if len(sys.argv) == 4:
