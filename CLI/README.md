@@ -3,17 +3,23 @@
 ## LIST OF EXPECTED DEPENDENCIES
 TODO: List Dependencies required
 
-## Configure turBOT Alias
-alias turbot="python3 /path/to/dir/turBOT.py"
+## Configure turBOT
+run setup.sh
+export PATH="path/to/turBOT/folder:$PATH"
 
 ## Test Help:
-turbot help
+turbot --help
+turbot -h
+
+## Test Default (Decompiles, Obfuscates and Reassembles):
+turbot /mnt/d/SEPB/test/exiting/test.o /mnt/d/SEPB/test/new/
+turbot -DRO /mnt/d/SEPB/test/exiting/test.o /mnt/d/SEPB/test/new/
 
 ## Test Decompile:
-turbot decompile /mnt/d/SEPB/test/exiting/decompile_test.o /mnt/d/SEPB/test/new/decompile_test.asm
+turbot -D /mnt/d/SEPB/test/exiting/test.o /mnt/d/SEPB/test/new/
 
 ## Test Obfuscate:
-turbot obfuscate /mnt/d/SEPB/test/exiting/obfuscate_test.o /mnt/d/SEPB/test/new/obfuscate_test.o
+turbot -O /mnt/d/SEPB/test/exiting/test.asm /mnt/d/SEPB/test/new/
 
-## Test Compile:
-turbot compile /mnt/d/SEPB/test/exiting/compile_test.asm /mnt/d/SEPB/test/new/compile_test.o
+## Test Reassemble:
+turbot -R /mnt/d/SEPB/test/exiting/test.asm /mnt/d/SEPB/test/new/

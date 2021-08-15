@@ -1,9 +1,12 @@
+#!/usr/bin/python3
+
 import os
 import sys
 import subprocess
 import itertools
 import threading
 import time
+import argparse
 # from os.path import dirname, basename, isfile, join
 # import glob
 # modules = glob.glob(join(dirname(__file__), "*.py"))
@@ -19,18 +22,6 @@ def progress(message):
         sys.stdout.flush()
         time.sleep(0.1)
     sys.stdout.write('\rDone!     \n')
-
-def help():
-    help_output = """
-    \rUsage: turbot [option] [source/file/dir] [destination/file/dir]
-    \rOptions:
-    \r
-    \r help         : Print this help message and exit
-    \r disassemble  : Disassembles a specified executable into a given directory
-    \r obfuscate    : Obfuscates a specified x86 assembly file and saves the obfuscated assmbly file to a given directory
-    \r reassemble   : Reassembles a specified assembly file and saves the executable into a given directory
-    """
-    print(help_output)
 
 # Disassemble, Assmeble and Obfuscate are similar atm for demo purposes.
 # They will be moved to modules later on as they will get complex once integrated with their corresponding tools
@@ -113,40 +104,47 @@ def obfuscate(source_dir, output_dir):
         print(e)
         print("An error occured during the compilation proccess")   
 
+# Returns the filename prefix
+# Expected input /path/to/directory/filename_prefix.extension
+# Returns filename_prefix
+def parse_filename(file_path):
+    filename = file_path.split('/')[-1]
+    prefix = filename.split('.')[0]
+    return prefix
+
 def main():
-    MAX_ARGS = 4
+    parser = argparse.ArgumentParser(description='Binary Obfuscation Tool (BOT), default flags -DRO')
+    parser.add_argument('-D', action='store_const', const=True, default=False, help='Disassembles a specified binary')
+    parser.add_argument('-R', action='store_const', const=True, default=False, help='Reassembles a specified assembly file')
+    parser.add_argument('-O', action='store_const', const=True, default=False, help='Obfuscates a specified assembly file')
+    parser.add_argument('source', metavar='F', type=str, help='The dir where the file is located source/path/file.ext')
+    parser.add_argument('destination', metavar='T', type=str, help='The dir where the output file will be stored output/path/')
 
-    if len(sys.argv) > MAX_ARGS:
-        print('You have specified too many arguments')
-        sys.exit()
+    args = parser.parse_args(sys.argv[1:]) # Ignores the initial sys.argv which contains the path to this script
 
-    elif len(sys.argv) <= 1:
-        print('Please specify a command, type \'help\' to display all commabds')
-        sys.exit()
+    # Parses filename from source dir and prepare names for created outputs.
+    filename = parse_filename(args.source)
+    dis_dest = args.destination + f'{filename}-disassembled.asm'
+    obf_dest = args.destination + f'{filename}-obfuscated.asm'
+    rea_dest = args.destination + f'{filename}-reassembled.o'
 
-    # Command Parsing... Did we want to make this OO or just leave it at functional?
-    if sys.argv[1] == "help":
-        help()
-        sys.exit()
-    elif sys.argv[1] == "disassemble":
-        if len(sys.argv) == 4:
-            disassemble(sys.argv[2], sys.argv[3])
-        else:
-            print('Usage: disassemble "disassemble/file/bin.o" "disassemble/to/bin.asm"')
-        sys.exit()
-    elif sys.argv[1] == "reassemble":
-        if len(sys.argv) == 4:
-            reassemble(sys.argv[2], sys.argv[3])
-        else:
-            print('Usage: reassemble "reassemble/file/bin.asm" "reassemble/to/bin.o"')
-        sys.exit()
-    elif sys.argv[1] == "obfuscate":
-        if len(sys.argv) == 4:
-            obfuscate(sys.argv[2], sys.argv[3])
-        else:
-            print('Usage: obfuscate "obfuscate/file/bin.asm" "obfuscate/to/bin.asm"')
-        sys.exit()
-    
-    # if sys.argv
+    print(args)
+    if args.D == args.R == args.O == False or args.D == args.R == args.O == True:     # Default behaviour, step through all commands\
+        print('Running default command')
+        disassemble(args.source, dis_dest)
+        obfuscate(dis_dest, obf_dest)
+        reassemble(obf_dest, rea_dest)
+
+    elif args.D == True:                        # Disassembles given binary
+        print('Running Disassemble Only')
+        disassemble(args.source, dis_dest)
+
+    elif args.O == True:                        # Obfuscates given assembly file
+        print('Running Obfuscate Only')
+        obfuscate(dis_dest, obf_dest)
+
+    elif args.R == True:                        # Reassembles given assembly file into an executable binary
+        print('Running Reassemble Only')
+        reassemble(obf_dest, rea_dest)
     
 main()
