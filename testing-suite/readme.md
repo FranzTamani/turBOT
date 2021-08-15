@@ -26,3 +26,12 @@ inside each folder will contain a:
 - clang
 - [rustc](https://www.rust-lang.org/tools/install)
 - valgrind
+
+## usage
+each test contains a makefile to reproduce compilation, as well as some other useful functions. there are:
+
+- `make` -- compile and run
+- `make run` -- simply run output binary
+- `make memleaktest` -- run memory leak test with valgrind (on tests that require it)
+
+there may be more commands available on a test-by-test basis, so read each makefile to understand what is available to you.
