@@ -25,3 +25,4 @@ inside each folder will contain a:
 - gcc
 - clang
 - [rustc](https://www.rust-lang.org/tools/install)
+- valgrind
