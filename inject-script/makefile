@@ -1,10 +1,15 @@
-all: build inject run
+lazy: build inject_lazy run
+
+no_call: build inject_no_call run
 
 build:
 	g++ -o empty.out empty.cpp
 
-inject:
-	./turbot.sh empty.out
+inject_lazy:
+	./turbot-lazy.sh empty.out
+
+inject_no_call:
+	./turbot-no-call.sh empty.out
 
 run:
 	./empty.out
