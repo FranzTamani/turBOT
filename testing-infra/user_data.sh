@@ -12,3 +12,11 @@ chmod +x ./setup.sh && \
 ./setup.sh
 
 export PATH="/TestCLI:$PATH"
+
+mkdir /home/ubuntu/Test
+mkdir /home/ubuntu/TestOutput
+touch /home/ubuntu/Test/default.o
+touch /home/ubuntu/Test/disassemble.o
+touch /home/ubuntu/Test/reassemble.asm
+touch /home/ubuntu/Test/obfuscate.asm
+
