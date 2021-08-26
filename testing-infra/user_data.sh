@@ -10,8 +10,7 @@ git clone https://github.com/FranzTamani/TestCLI.git
 cd TestCLI && \
 chmod +x ./setup.sh && \
 ./setup.sh
-
-export PATH="/TestCLI:$PATH"
+cp turbot /usr/bin
 
 mkdir /home/ubuntu/Test
 mkdir /home/ubuntu/TestOutput
