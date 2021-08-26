@@ -5,12 +5,12 @@ echo "deb https://download.grammatech.com/gtirb/files/apt-repo focal stable"| te
 apt update -y
 apt install ddisasm git g++ python3 -y
 
-git clone https://github.com/FranzTamani/TestCLI.git
+git clone https://github.com/FranzTamani/turBOT.git
 
-cd TestCLI && \
+cd turBOT/CLI && \
 chmod +x ./setup.sh && \
-./setup.sh
-cp turbot /usr/bin
+./setup.sh && \
+cp turBOT /usr/bin
 
 mkdir /home/ubuntu/Test
 mkdir /home/ubuntu/TestOutput
