@@ -17,3 +17,5 @@ touch /home/ubuntu/Test/disassemble.o
 touch /home/ubuntu/Test/reassemble.asm
 touch /home/ubuntu/Test/obfuscate.asm
 
+chown -R ubuntu:ubuntu /home/ubuntu
+
