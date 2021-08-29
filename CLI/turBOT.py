@@ -8,6 +8,9 @@ import threading
 import time
 import argparse
 
+# Error code to return on exception
+EXCEPTION_ERROR_CODE = -1
+
 done = False
 
 def progress(message):
@@ -26,61 +29,86 @@ def progress(message):
 def disassemble(source_dir, output_dir):
     try:
         if os.path.isfile(source_dir):
-            print("File found")
-        message = "Program is currently decompiling"
+            print("Program is currently disassembling")
+        else:
+            print("Disassembly target file not found")
+            return EXCEPTION_ERROR_CODE
 
-        args = ["ddisasm", "./empty.out", "--asm", "yeet.asm"] # Console Commands Go Here, split strings
-        p = subprocess.Popen(args, stdout=subprocess.PIPE) # TODO: HOW DO WE ACTUALLY DISASSEMBLE STUFF??
-        p.wait() # Wait for subprocess to finish executin
+        args = ["ddisasm", source_dir, "--asm", output_dir] # Console Commands Go Here, split strings
+        p = subprocess.Popen(args, stdout=subprocess.PIPE)
+        p.wait() # Wait for subprocess to finish executing
         exit_code = p.poll()
-        print(f'Exit Code: {exit_code}')
-        if exit_code == 0: # Command Exit Successfully
-            print("Do Whatever")
-        else: # Uh Oh Brokey
-            print("Uh oh Brokey")
+        # Return exit code to know if to proceed
+        return exit_code
+
     except Exception as e:
         print(e)
         print("An error occured during the decompilation proccess")
+        # Return exception error code
+        return EXCEPTION_ERROR_CODE
 
 # Disassemble, Assmeble and Obfuscate are similar atm for demo purposes.
 # They will be moved to modules later on as they will get complex once integrated with their corresponding tools
 def reassemble(source_dir, output_dir): 
     try:
         if os.path.isfile(source_dir):
-            print("File found")
-        message = "Program is currently compiling"
+            print("Program is currently reassembling")
+        else:
+            print("Reassembly target file not found")
+            return EXCEPTION_ERROR_CODE
         
-        args = [] # Console Commands Go Here, split strings
-        p = subprocess.Popen(args, stdout=subprocess.PIPE) # TODO: HOW DO WE ACTUALLY DISASSEMBLE STUFF??
-        p.wait() # Wait for subprocess to finish executin
+        args = ["g++", "-pthread", "-no-pie", "-o", output_dir, source_dir] # Console Commands Go Here, split strings
+        p = subprocess.Popen(args, stdout=subprocess.PIPE)
+        p.wait() # Wait for subprocess to finish executing
         exit_code = p.poll()
-        if exit_code == 0: # Command Exit Successfully
-            print("Do Whatever")
-        else: # Uh Oh Brokey
-            print("Uh oh Brokey")
+        # Return exit code to know if to proceed
+        return exit_code
+        
     except Exception as e:
         print(e)
-        print("An error occured during the compilation proccess")        
+        print("An error occured during the compilation proccess")
+        # Return exception error code
+        return EXCEPTION_ERROR_CODE    
 
 # Disassemble, Assmeble and Obfuscate are similar atm for demo purposes.
 # They will be moved to modules later on as they will get complex once integrated with their corresponding tools
-def obfuscate(source_dir, output_dir): 
+def obfuscate(source_dir, output_dir, inject_mode = "LAZY", inject_files = ["HelloWorldInject.s"]): 
     try:
         if os.path.isfile(source_dir):
-            print("File found")
-        message = "Program is currently obfuscating the assembly file"
+            print("Program is currently obfuscating the assembly file")
+        else:
+            print("Obfuscation target file not found")
+            return EXCEPTION_ERROR_CODE
 
-        args = [] # Console Commands Go Here, split strings
-        p = subprocess.Popen(args, stdout=subprocess.PIPE) # TODO: HOW DO WE ACTUALLY DISASSEMBLE STUFF??
-        p.wait() # Wait for subprocess to finish executin
+        # Set up sed parameters:
+        if inject_mode=="LAZY":
+            call_line = "/main:/a "
+        elif inject_mode=="NO_CALL":
+            call_line = "/ret/a "
+        else:
+            # Unhandled inject mode
+            return EXCEPTION_ERROR_CODE 
+        file_inject_params = []
+        for i in range(len(inject_files)):
+            method_name = parse_filename(inject_files[i])
+            if i > 0:
+                call_line += "\n "
+            call_line += f"call {method_name} "
+            file_inject_params += ["-e", "3r " + inject_files[i]]
+        args = ["sed", "-e", call_line] + file_inject_params + [source_dir] # Console Commands Go Here, split strings
+        output_file = open(output_dir, "w")
+        p = subprocess.Popen(args, stdout=output_file)
+        p.wait() # Wait for subprocess to finish executing
         exit_code = p.poll()
-        if exit_code == 0: # Command Exit Successfully
-            print("Do Whatever")
-        else: # Uh Oh Brokey
-            print("Uh oh Brokey")
+        output_file.close()
+        # Return exit code to know if to proceed
+        return exit_code
+        
     except Exception as e:
         print(e)
-        print("An error occured during the compilation proccess")   
+        print("An error occured during the obfuscation proccess")
+        # Return exception error code
+        return EXCEPTION_ERROR_CODE
 
 # Returns the filename prefix
 # Expected input /path/to/directory/filename_prefix.extension
@@ -97,21 +125,32 @@ def main():
     parser.add_argument('-O', action='store_const', const=True, default=False, help='Obfuscates a specified assembly file')
     parser.add_argument('source', metavar='F', type=str, help='The dir where the file is located source/path/file.ext')
     parser.add_argument('destination', metavar='T', type=str, help='The dir where the output file will be stored output/path/')
+    # TODO: Add parameters to set obfuscation mode (default: LAZY) and to provide inject files for obfuscation
 
     args = parser.parse_args(sys.argv[1:]) # Ignores the initial sys.argv which contains the path to this script
 
     # Parses filename from source dir and prepare names for created outputs.
     filename = parse_filename(args.source)
-    dis_dest = args.destination + f'{filename}-disassembled.asm'
-    obf_dest = args.destination + f'{filename}-obfuscated.asm'
-    rea_dest = args.destination + f'{filename}-reassembled.o'
+    dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
+    obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
+    rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
 
     print(args)
-    if args.D == args.R == args.O == False or args.D == args.R == args.O == True:     # Default behaviour, step through all commands\
+    if args.D == args.R == args.O:     # Default behaviour, step through all commands (happens if all false or all true)
         print('Running default command')
-        disassemble(args.source, dis_dest)
-        obfuscate(dis_dest, obf_dest)
-        reassemble(obf_dest, rea_dest)
+        exit_code = disassemble(args.source, dis_dest)
+        if exit_code:
+            print("Error encountered during disassembly. Halting...")
+            sys.exit(exit_code)
+        exit_code = obfuscate(dis_dest, obf_dest)
+        if exit_code:
+            print("Error encountered during obfuscation. Halting...")
+            sys.exit(exit_code)
+        exit_code = reassemble(obf_dest, rea_dest)
+        if exit_code:
+            print("Error encountered during resassembly. Halting...")
+            sys.exit(exit_code)
+        sys.exit(0)
 
     elif args.D == True:                        # Disassembles given binary
         print('Running Disassemble Only')
@@ -119,10 +158,10 @@ def main():
 
     elif args.O == True:                        # Obfuscates given assembly file
         print('Running Obfuscate Only')
-        obfuscate(dis_dest, obf_dest)
+        obfuscate(args.source, obf_dest)
 
     elif args.R == True:                        # Reassembles given assembly file into an executable binary
         print('Running Reassemble Only')
-        reassemble(obf_dest, rea_dest)
+        reassemble(args.source, rea_dest)
     
 main()
