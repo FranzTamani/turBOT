@@ -96,11 +96,10 @@ def obfuscate(source_dir, output_dir, inject_mode = "LAZY", inject_files = ["Hel
             call_line += f"call {method_name} "
             file_inject_params += ["-e", "3r " + inject_files[i]]
         args = ["sed", "-e", call_line] + file_inject_params + [source_dir] # Console Commands Go Here, split strings
-        output_file = open(output_dir, "w")
-        p = subprocess.Popen(args, stdout=output_file)
-        p.wait() # Wait for subprocess to finish executing
-        exit_code = p.poll()
-        output_file.close()
+        with open(output_dir, "w") as output_file:
+            p = subprocess.Popen(args, stdout=output_file)
+            p.wait() # Wait for subprocess to finish executing
+            exit_code = p.poll()
         # Return exit code to know if to proceed
         return exit_code
         
