@@ -28,22 +28,16 @@ def disassemble(source_dir, output_dir):
         if os.path.isfile(source_dir):
             print("File found")
         message = "Program is currently decompiling"
-        t = threading.Thread(target=progress, args=(message,))
-        t.start()
-        # p = subprocess.Popen(["<Path to Decompiler>", "<Disassemble Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY DISASSEMBLE STUFF??
-        time.sleep(5)
-        # p.wait() # Wait for subprocess to finish executin
-        # Condition Variable for "Loading" process
-        global done
-        done = True
 
-        t.join()
-
-        # TODO: GET RID OF THIS SECTION ONCE WE HAVE DISASSEMBLY ACTUALLY WORKING
-        with open(output_dir, 'w') as fp:
-            fp.write("This is a sample File")
-        
-        print(source_dir + " has been disassembled to " + output_dir)
+        args = ["ddisasm", "./empty.out", "--asm", "yeet.asm"] # Console Commands Go Here, split strings
+        p = subprocess.Popen(args, stdout=subprocess.PIPE) # TODO: HOW DO WE ACTUALLY DISASSEMBLE STUFF??
+        p.wait() # Wait for subprocess to finish executin
+        exit_code = p.poll()
+        print(f'Exit Code: {exit_code}')
+        if exit_code == 0: # Command Exit Successfully
+            print("Do Whatever")
+        else: # Uh Oh Brokey
+            print("Uh oh Brokey")
     except Exception as e:
         print(e)
         print("An error occured during the decompilation proccess")
@@ -55,22 +49,15 @@ def reassemble(source_dir, output_dir):
         if os.path.isfile(source_dir):
             print("File found")
         message = "Program is currently compiling"
-        t = threading.Thread(target=progress, args=(message,))
-        t.start()
-        # p = subprocess.Popen(["<Path to Compiler>", "<Assmeble Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY COMPILE STUFF??
-        time.sleep(5)
-        # p.wait() # Wait for subprocess to finish executin
-        # Condition Variable for "Loading" process
-        global done
-        done = True
-
-        t.join()
-
-        # TODO: GET RID OF THIS SECTION ONCE WE HAVE DECOMPILATION ACTUALLY WORKING
-        with open(output_dir, 'w') as fp:
-            fp.write("This is a sample File")
         
-        print(source_dir + " has been compiled to " + output_dir)
+        args = [] # Console Commands Go Here, split strings
+        p = subprocess.Popen(args, stdout=subprocess.PIPE) # TODO: HOW DO WE ACTUALLY DISASSEMBLE STUFF??
+        p.wait() # Wait for subprocess to finish executin
+        exit_code = p.poll()
+        if exit_code == 0: # Command Exit Successfully
+            print("Do Whatever")
+        else: # Uh Oh Brokey
+            print("Uh oh Brokey")
     except Exception as e:
         print(e)
         print("An error occured during the compilation proccess")        
@@ -82,22 +69,15 @@ def obfuscate(source_dir, output_dir):
         if os.path.isfile(source_dir):
             print("File found")
         message = "Program is currently obfuscating the assembly file"
-        t = threading.Thread(target=progress, args=(message,))
-        t.start()
-        # p = subprocess.Popen(["<Path to Obfuscator>", "<Obfuscator Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY OBFUSCATE STUFF??
-        time.sleep(5)
-        # p.wait() # Wait for subprocess to finish executin
-        # Condition Variable for "Loading" process
-        global done
-        done = True
 
-        t.join()
-
-        # TODO: GET RID OF THIS SECTION ONCE WE HAVE DECOMPILATION ACTUALLY WORKING
-        with open(output_dir, 'w') as fp:
-            fp.write("This is a sample File")
-        
-        print(source_dir + " has been compiled to " + output_dir)
+        args = [] # Console Commands Go Here, split strings
+        p = subprocess.Popen(args, stdout=subprocess.PIPE) # TODO: HOW DO WE ACTUALLY DISASSEMBLE STUFF??
+        p.wait() # Wait for subprocess to finish executin
+        exit_code = p.poll()
+        if exit_code == 0: # Command Exit Successfully
+            print("Do Whatever")
+        else: # Uh Oh Brokey
+            print("Uh oh Brokey")
     except Exception as e:
         print(e)
         print("An error occured during the compilation proccess")   
@@ -111,7 +91,7 @@ def parse_filename(file_path):
     return prefix
 
 def main():
-    parser = argparse.ArgumentParser(description='Binary Obfuscation Tool (BOT), default flags -DRO')
+    parser = argparse.ArgumentParser(description='Binary Obfuscation Tool (BOT). The flags D, R and O are enabled by default')
     parser.add_argument('-D', action='store_const', const=True, default=False, help='Disassembles a specified binary')
     parser.add_argument('-R', action='store_const', const=True, default=False, help='Reassembles a specified assembly file')
     parser.add_argument('-O', action='store_const', const=True, default=False, help='Obfuscates a specified assembly file')
