@@ -122,9 +122,11 @@ def main():
     parser.add_argument('-D', action='store_const', const=True, default=False, help='Disassembles a specified binary')
     parser.add_argument('-R', action='store_const', const=True, default=False, help='Reassembles a specified assembly file')
     parser.add_argument('-O', action='store_const', const=True, default=False, help='Obfuscates a specified assembly file')
+    parser.add_argument('-p', "--payload", action='append', help='Paths to .s files to be used for obfuscation mode as payloads. This flag can be used multiple times'
+                            ' to specify multiple payloads to add. These files must be named for the function to be called inside them. i.e. [func_name].s', metavar='payload', dest='payloads')
+    parser.add_argument('-m', '--mode', action='store', default='lazy', choices=['lazy','no_call'], help='The obfuscation mode. Ignored if -O is not present.\n(default: %(default)s)')
     parser.add_argument('source', metavar='F', type=str, help='The dir where the file is located source/path/file.ext')
     parser.add_argument('destination', metavar='T', type=str, help='The dir where the output file will be stored output/path/')
-    # TODO: Add parameters to set obfuscation mode (default: LAZY) and to provide inject files for obfuscation
 
     args = parser.parse_args(sys.argv[1:]) # Ignores the initial sys.argv which contains the path to this script
 
