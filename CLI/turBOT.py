@@ -8,6 +8,17 @@ import threading
 import time
 import argparse
 
+# Error code to return on exception
+EXCEPTION_ERROR_CODE = 1
+
+# Terminal colours:
+WARNING = '\033[93m'
+ERROR = '\033[91m'
+NO_COLOUR = '\x1b[0m'
+
+# Inject modes:
+INJECT_MODES = ["lazy","no_call"]
+
 done = False
 
 def progress(message):
@@ -26,81 +37,96 @@ def progress(message):
 def disassemble(source_dir, output_dir):
     try:
         if os.path.isfile(source_dir):
-            print("File found")
-        message = "Program is currently decompiling"
-        t = threading.Thread(target=progress, args=(message,))
-        t.start()
-        # p = subprocess.Popen(["<Path to Decompiler>", "<Disassemble Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY DISASSEMBLE STUFF??
-        time.sleep(5)
-        # p.wait() # Wait for subprocess to finish executin
-        # Condition Variable for "Loading" process
-        global done
-        done = True
+            print("Program is currently disassembling")
+        else:
+            print(f"{ERROR}ERROR: Disassembly target file not found{NO_COLOUR}")
+            return 2
 
-        t.join()
+        args = ["ddisasm", source_dir, "--asm", output_dir] # Console Commands Go Here, split strings
+        p = subprocess.Popen(args, stdout=subprocess.PIPE)
+        p.wait() # Wait for subprocess to finish executing
+        exit_code = p.poll()
+        # Return exit code to know if to proceed
+        return exit_code
 
-        # TODO: GET RID OF THIS SECTION ONCE WE HAVE DISASSEMBLY ACTUALLY WORKING
-        with open(output_dir, 'w') as fp:
-            fp.write("This is a sample File")
-        
-        print(source_dir + " has been disassembled to " + output_dir)
     except Exception as e:
         print(e)
-        print("An error occured during the decompilation proccess")
+        print(f"{ERROR}An error occured during the decompilation proccess{NO_COLOUR}")
+        # Return exception error code
+        return EXCEPTION_ERROR_CODE
 
 # Disassemble, Assmeble and Obfuscate are similar atm for demo purposes.
 # They will be moved to modules later on as they will get complex once integrated with their corresponding tools
 def reassemble(source_dir, output_dir): 
     try:
         if os.path.isfile(source_dir):
-            print("File found")
-        message = "Program is currently compiling"
-        t = threading.Thread(target=progress, args=(message,))
-        t.start()
-        # p = subprocess.Popen(["<Path to Compiler>", "<Assmeble Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY COMPILE STUFF??
-        time.sleep(5)
-        # p.wait() # Wait for subprocess to finish executin
-        # Condition Variable for "Loading" process
-        global done
-        done = True
-
-        t.join()
-
-        # TODO: GET RID OF THIS SECTION ONCE WE HAVE DECOMPILATION ACTUALLY WORKING
-        with open(output_dir, 'w') as fp:
-            fp.write("This is a sample File")
+            print("Program is currently reassembling")
+        else:
+            print(f"{ERROR}ERROR: Reassembly target file not found{NO_COLOUR}")
+            return 2
         
-        print(source_dir + " has been compiled to " + output_dir)
+        args = ["g++", "-pthread", "-no-pie", "-o", output_dir, source_dir] # Console Commands Go Here, split strings
+        p = subprocess.Popen(args, stdout=subprocess.PIPE)
+        p.wait() # Wait for subprocess to finish executing
+        exit_code = p.poll()
+        # Return exit code to know if to proceed
+        return exit_code
+        
     except Exception as e:
         print(e)
-        print("An error occured during the compilation proccess")        
+        print(f"{ERROR}An error occured during the compilation proccess{NO_COLOUR}")
+        # Return exception error code
+        return EXCEPTION_ERROR_CODE    
 
 # Disassemble, Assmeble and Obfuscate are similar atm for demo purposes.
 # They will be moved to modules later on as they will get complex once integrated with their corresponding tools
-def obfuscate(source_dir, output_dir): 
+def obfuscate(source_dir, output_dir, inject_mode, inject_files): 
+    if not inject_files:
+        print(f'{ERROR}ERROR: At least one payload must be supplied if using -O{NO_COLOUR}\nSupply payloads in the form: -p payload_path [-p payload_path [...]]')
+        return 22
     try:
         if os.path.isfile(source_dir):
-            print("File found")
-        message = "Program is currently obfuscating the assembly file"
-        t = threading.Thread(target=progress, args=(message,))
-        t.start()
-        # p = subprocess.Popen(["<Path to Obfuscator>", "<Obfuscator Command>", source_dir, output_dir]) TODO: HOW DO WE ACTUALLY OBFUSCATE STUFF??
-        time.sleep(5)
-        # p.wait() # Wait for subprocess to finish executin
-        # Condition Variable for "Loading" process
-        global done
-        done = True
-
-        t.join()
-
-        # TODO: GET RID OF THIS SECTION ONCE WE HAVE DECOMPILATION ACTUALLY WORKING
-        with open(output_dir, 'w') as fp:
-            fp.write("This is a sample File")
+            print("Program is currently obfuscating the assembly file")
+        else:
+            print(f"{ERROR}ERROR: Obfuscation target file not found{NO_COLOUR}")
+            return 2
         
-        print(source_dir + " has been compiled to " + output_dir)
+        invalid_files = []
+        for f in inject_files:
+            if not os.path.isfile(f):
+                print(f"{WARNING}WARNING: {f}: file not found. This payload will not be used in the obfuscation process{NO_COLOUR}")
+                invalid_files.append(f)
+        inject_files = [f for f in inject_files if f not in invalid_files]
+        if not inject_files:
+            print(f"{ERROR}ERROR: no payload files were found. Obfuscation cannot proceed{NO_COLOUR}")
+            return 2
+
+        # Set up sed parameters:
+        if inject_mode=="lazy":
+            call_start = "/main:/a "
+        elif inject_mode=="no_call":
+            call_start = "/ret/a "
+        else:
+            # Unhandled inject mode
+            return EXCEPTION_ERROR_CODE 
+        file_inject_params = []
+        for i in range(len(inject_files)):
+            method_name = parse_filename(inject_files[i])
+            call_line = call_start + f"call {method_name}"
+            file_inject_params += ["-e", "3r " + inject_files[i], "-e", call_line]
+        args = ["sed"] + file_inject_params + [source_dir] # Console Commands Go Here, split strings
+        with open(output_dir, "w") as output_file:
+            p = subprocess.Popen(args, stdout=output_file)
+            p.wait() # Wait for subprocess to finish executing
+            exit_code = p.poll()
+        # Return exit code to know if to proceed
+        return exit_code
+        
     except Exception as e:
         print(e)
-        print("An error occured during the compilation proccess")   
+        print(f"{ERROR}An error occured during the obfuscation proccess{NO_COLOUR}")
+        # Return exception error code
+        return EXCEPTION_ERROR_CODE
 
 # Returns the filename prefix
 # Expected input /path/to/directory/filename_prefix.extension
@@ -111,10 +137,13 @@ def parse_filename(file_path):
     return prefix
 
 def main():
-    parser = argparse.ArgumentParser(description='Binary Obfuscation Tool (BOT), default flags -DRO')
+    parser = argparse.ArgumentParser(description='Binary Obfuscation Tool (BOT). The flags D, R and O are enabled by default')
     parser.add_argument('-D', action='store_const', const=True, default=False, help='Disassembles a specified binary')
     parser.add_argument('-R', action='store_const', const=True, default=False, help='Reassembles a specified assembly file')
     parser.add_argument('-O', action='store_const', const=True, default=False, help='Obfuscates a specified assembly file')
+    parser.add_argument('-p', "--payload", action='append', help='Paths to .s files to be used for obfuscation mode as payloads. This flag can be used multiple times'
+                            ' to specify multiple payloads to add. These files must be named for the function to be called inside them. i.e. [func_name].s', metavar='payload', dest='payloads')
+    parser.add_argument('-m', '--mode', action='store', default='lazy', choices=INJECT_MODES, help='The obfuscation mode. Ignored if -O is not present.\n(default: %(default)s)', dest='mode')
     parser.add_argument('source', metavar='F', type=str, help='The dir where the file is located source/path/file.ext')
     parser.add_argument('destination', metavar='T', type=str, help='The dir where the output file will be stored output/path/')
 
@@ -122,16 +151,26 @@ def main():
 
     # Parses filename from source dir and prepare names for created outputs.
     filename = parse_filename(args.source)
-    dis_dest = args.destination + f'{filename}-disassembled.asm'
-    obf_dest = args.destination + f'{filename}-obfuscated.asm'
-    rea_dest = args.destination + f'{filename}-reassembled.o'
+    dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
+    obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
+    rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
 
     print(args)
-    if args.D == args.R == args.O == False or args.D == args.R == args.O == True:     # Default behaviour, step through all commands\
+    if args.D == args.R == args.O:     # Default behaviour, step through all commands (happens if all false or all true)
         print('Running default command')
-        disassemble(args.source, dis_dest)
-        obfuscate(dis_dest, obf_dest)
-        reassemble(obf_dest, rea_dest)
+        exit_code = disassemble(args.source, dis_dest)
+        if exit_code:
+            print(f"{ERROR}Error encountered during disassembly. Halting...{NO_COLOUR}")
+            sys.exit(exit_code)
+        exit_code = obfuscate(dis_dest, obf_dest, args.mode, args.payloads)
+        if exit_code:
+            print(f"{ERROR}Error encountered during obfuscation. Halting...{NO_COLOUR}")
+            sys.exit(exit_code)
+        exit_code = reassemble(obf_dest, rea_dest)
+        if exit_code:
+            print(f"{ERROR}Error encountered during resassembly. Halting...{NO_COLOUR}")
+            sys.exit(exit_code)
+        sys.exit(0)
 
     elif args.D == True:                        # Disassembles given binary
         print('Running Disassemble Only')
@@ -139,10 +178,10 @@ def main():
 
     elif args.O == True:                        # Obfuscates given assembly file
         print('Running Obfuscate Only')
-        obfuscate(dis_dest, obf_dest)
+        obfuscate(args.source, obf_dest, args.mode, args.payloads)
 
     elif args.R == True:                        # Reassembles given assembly file into an executable binary
         print('Running Reassemble Only')
-        reassemble(obf_dest, rea_dest)
+        reassemble(args.source, rea_dest)
     
 main()
