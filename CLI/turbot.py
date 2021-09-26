@@ -188,7 +188,7 @@ def main():
     # Set the base file name for use when destination is not specified
     filename = parse_filename(args.source)
 
-    if args.A or (args.D and args.R and args.O):     # Default behaviour, step through all commands (happens if all false or all true)
+    if args.A or (args.D and args.R and args.O):     # Step through all commands (happens if all false or all true)
         print('Running all commands')
 
         if isPrefixProvided(args.destination):
