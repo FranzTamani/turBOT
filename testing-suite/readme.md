@@ -26,6 +26,8 @@ inside each folder will contain a:
 - clang
 - [rustc](https://www.rust-lang.org/tools/install)
 - valgrind
+- strip
+- upx (provided in `/bin`)
 
 ## usage
 each test contains a makefile to reproduce compilation, as well as some other useful functions. there are:
