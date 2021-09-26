@@ -166,12 +166,12 @@ def main():
         print('Running all commands')
 
         if args.destination == os.getcwd():
-            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.asm')
+            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
             obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
             rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
         else:
             filename = parse_filename(args.destination)
-            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.asm')
+            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
             obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
             rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
 
@@ -192,7 +192,7 @@ def main():
     elif args.D:                        # Disassembles given binary
         print('Running Disassemble Only')
         if args.destination == os.getcwd():
-            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.asm')
+            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
         else:
             dis_dest = args.destination
         disassemble(args.source, dis_dest)
@@ -200,7 +200,7 @@ def main():
     elif args.O:                        # Obfuscates given assembly file
         print('Running Obfuscate Only')
         if args.destination == os.getcwd():
-            obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.asm')
+            obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
         else:
             obf_dest = args.destination
         obfuscate(args.source, obf_dest, args.mode, args.payloads)
@@ -208,7 +208,7 @@ def main():
     elif args.R:                        # Reassembles given assembly file into an executable binary
         print('Running Reassemble Only')
         if args.destination == os.getcwd():
-            rea_dest = os.path.join(args.destination, f'{filename}-reassembled.o')
+            rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
         else:
             rea_dest = args.destination
         reassemble(args.source, rea_dest)
