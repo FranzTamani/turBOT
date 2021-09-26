@@ -32,6 +32,9 @@ def progress(message):
         time.sleep(0.1)
     sys.stdout.write('\rDone!     \n')
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 # Disassemble, Assmeble and Obfuscate are similar atm for demo purposes.
 # They will be moved to modules later on as they will get complex once integrated with their corresponding tools
 def disassemble(source_dir, output_dir):
@@ -136,28 +139,67 @@ def parse_filename(file_path):
     prefix = filename.split('.')[0]
     return prefix
 
+def isValidDestination(file_path):
+    print(file_path)
+    if not file_path[-1] == '/':
+        if os.path.isdir(file_path.split('/')[:-2].join('/')):
+            return True
+    else: 
+        if os.isdir(file_path):
+            return True
+    return False
+
+def isPrefixProvided(file_path):
+    if file_path[-1] == '/':
+        return False
+    else: 
+        filename = file_path.split('/')[-1]
+        if not filename.contains('.'):
+            return True
+    return False
+        
 def main():
-    parser = argparse.ArgumentParser(description='Binary Obfuscation Tool (BOT). The flags D, R and O are enabled by default')
+    parser = argparse.ArgumentParser(description='Binary Obfuscation Tool (BOT)')
+    parser.add_argument('-A', action='store_const', const=True, default=False, help='Performs disassembly, obfuscation and reassembly to a given binary')
     parser.add_argument('-D', action='store_const', const=True, default=False, help='Disassembles a specified binary')
     parser.add_argument('-R', action='store_const', const=True, default=False, help='Reassembles a specified assembly file')
     parser.add_argument('-O', action='store_const', const=True, default=False, help='Obfuscates a specified assembly file')
-    parser.add_argument('-p', "--payload", action='append', help='Paths to .s files to be used for obfuscation mode as payloads. This flag can be used multiple times'
+    parser.add_argument('-p', "--payload", action='append', help='Optional: Paths to .s files to be used for obfuscation mode as payloads. This flag can be used multiple times'
                             ' to specify multiple payloads to add. These files must be named for the function to be called inside them. i.e. [func_name].s', metavar='payload', dest='payloads')
-    parser.add_argument('-m', '--mode', action='store', default='lazy', choices=INJECT_MODES, help='The obfuscation mode. Ignored if -O is not present.\n(default: %(default)s)', dest='mode')
-    parser.add_argument('source', metavar='F', type=str, help='The dir where the file is located source/path/file.ext')
-    parser.add_argument('destination', metavar='T', type=str, help='The dir where the output file will be stored output/path/')
+    parser.add_argument('-m', '--mode', action='store', default='lazy', choices=INJECT_MODES, help='Optional: The obfuscation mode. Ignored if -O is not present.\n(default: %(default)s)', dest='mode')
+    parser.add_argument('source', nargs='?', default='', metavar='source', type=str, help='The dir where the file is located source/path/file.ext')
+    parser.add_argument('destination', nargs='?', default=os.getcwd(), metavar='destination', type=str, help='Optional: The dir where the output file will be stored "/output/path/filename-prefix.ext"' 
+                            ' DO NOT include file extension when "-A" flag is set as it is auto generated')
 
     args = parser.parse_args(sys.argv[1:]) # Ignores the initial sys.argv which contains the path to this script
 
-    # Parses filename from source dir and prepare names for created outputs.
-    filename = parse_filename(args.source)
-    dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
-    obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
-    rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    if not os.path.isfile(args.source):
+        parser.print_help(sys.stderr)
+        eprint('Error: Provided source argument is not a file')
+        sys.exit(1)
+    if not isValidDestination(args.destination):
+        parser.print_help(sys.stderr)
+        eprint('Error: Provided destination argument is not a directory')
+        sys.exit(1)
 
-    print(args)
-    if args.D == args.R == args.O:     # Default behaviour, step through all commands (happens if all false or all true)
-        print('Running default command')
+    # Set the base file name for use when destination is not specified
+    filename = parse_filename(args.source)
+
+    if args.A or (args.D and args.R and args.O):     # Default behaviour, step through all commands (happens if all false or all true)
+        print('Running all commands')
+
+        if isPrefixProvided(args.destination):
+            parser.print_help(sys.stderr)
+            eprint('Error: Provided destination argument does not contain a valid filename prefix')
+            sys.exit(1)
+
+        dis_dest = os.path.join(args.destination, '-disassembled.asm')
+        obf_dest = os.path.join(args.destination, '-obfuscated.s')
+        rea_dest = os.path.join(args.destination, '-reassembled.out')
+
         exit_code = disassemble(args.source, dis_dest)
         if exit_code:
             print(f"{ERROR}Error encountered during disassembly. Halting...{NO_COLOUR}")
@@ -172,16 +214,32 @@ def main():
             sys.exit(exit_code)
         sys.exit(0)
 
-    elif args.D == True:                        # Disassembles given binary
+    elif args.D:                        # Disassembles given binary
         print('Running Disassemble Only')
+        if args.destination[-1] == '/':
+            dis_dest = os.path.join(args.destination, f'{filename}.asm')
+        else:
+            dis_dest = args.destination
         disassemble(args.source, dis_dest)
 
-    elif args.O == True:                        # Obfuscates given assembly file
+    elif args.O:                        # Obfuscates given assembly file
         print('Running Obfuscate Only')
+        if args.destination[-1] == '/':
+            obf_dest = os.path.join(args.destination, f'{filename}.asm')
+        else:
+            obf_dest = args.destination
         obfuscate(args.source, obf_dest, args.mode, args.payloads)
 
-    elif args.R == True:                        # Reassembles given assembly file into an executable binary
+    elif args.R:                        # Reassembles given assembly file into an executable binary
         print('Running Reassemble Only')
+        if args.destination[-1] == '/':
+            rea_dest = os.path.join(args.destination, f'{filename}.o')
+        else:
+            rea_dest = args.destination
         reassemble(args.source, rea_dest)
+
+    else:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
     
 main()
