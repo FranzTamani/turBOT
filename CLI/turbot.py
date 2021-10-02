@@ -91,6 +91,7 @@ def obfuscate(source_dir, output_dir, inject_mode, inject_files):
         if os.path.isfile(source_dir):
             print("Program is currently obfuscating the assembly file")
         else:
+            print(source_dir, output_dir, inject_mode, inject_files)
             print(f"{ERROR}ERROR: Obfuscation target file not found{NO_COLOUR}")
             return 2
         
@@ -159,59 +160,47 @@ def main():
         parser.print_help(sys.stderr)
         sys.exit(1)
 
-    # Set the base file name for use when destination is not specified
-    filename = parse_filename(args.source)
+    # Set the default file name as output if no destination is specified
+    if args.destination == os.getcwd():
+        file_dest = os.path.join(args.destination, "output")
+    else:
+        file_dest = args.destination
 
     if args.A or (args.D and args.R and args.O):     # Step through all commands (happens if all false or all true)
         print('Running all commands')
 
-        if os.path.isdir(args.destination):
-            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
-            obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
-            rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
-        else:
-            filename = parse_filename(args.destination)
-            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
-            obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
-            rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
-
-        exit_code = disassemble(args.source, dis_dest)
+        exit_code = disassemble(args.source, file_dest)
         if exit_code:
             print(f"{ERROR}Error encountered during disassembly. Halting...{NO_COLOUR}")
             sys.exit(exit_code)
-        exit_code = obfuscate(dis_dest, obf_dest, args.mode, args.payloads)
+        exit_code = obfuscate(file_dest, file_dest, args.mode, args.payloads)
         if exit_code:
             print(f"{ERROR}Error encountered during obfuscation. Halting...{NO_COLOUR}")
             sys.exit(exit_code)
-        exit_code = reassemble(obf_dest, rea_dest)
+        exit_code = reassemble(file_dest, file_dest)
         if exit_code:
             print(f"{ERROR}Error encountered during resassembly. Halting...{NO_COLOUR}")
             sys.exit(exit_code)
         sys.exit(0)
 
-    elif args.D:                        # Disassembles given binary
+    # If -A or -DRO are all selected, these will not run
+    if args.D:                        # Disassembles given binary
         print('Running Disassemble Only')
-        if args.destination == os.getcwd():
-            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
-        else:
-            dis_dest = args.destination
-        disassemble(args.source, dis_dest)
+        disassemble(args.source, file_dest)
 
-    elif args.O:                        # Obfuscates given assembly file
+    if args.O:                        # Obfuscates given assembly file
         print('Running Obfuscate Only')
-        if args.destination == os.getcwd():
-            obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
+        if args.D:
+            obfuscate(file_dest, file_dest, args.mode, args.payloads)
         else:
-            obf_dest = args.destination
-        obfuscate(args.source, obf_dest, args.mode, args.payloads)
+            obfuscate(args.source, file_dest, args.mode, args.payloads)
 
-    elif args.R:                        # Reassembles given assembly file into an executable binary
+    if args.R:                        # Reassembles given assembly file into an executable binary
         print('Running Reassemble Only')
-        if args.destination == os.getcwd():
-            rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
+        if args.D or args.O:
+            reassemble(file_dest, file_dest)
         else:
-            rea_dest = args.destination
-        reassemble(args.source, rea_dest)
+            reassemble(args.source, file_dest)
 
     else:
         parser.print_help(sys.stderr)
