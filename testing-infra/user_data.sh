@@ -8,7 +8,7 @@ git clone https://github.com/FranzTamani/turBOT.git
 cd turBOT/CLI && \
 chmod +x ./setup.sh && \
 ./setup.sh && \
-cp turBOT /usr/bin
+cp turbot /usr/bin
 
 mkdir /home/ubuntu/Test
 mkdir /home/ubuntu/TestOutput
