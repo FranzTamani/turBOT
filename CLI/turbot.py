@@ -167,7 +167,7 @@ def main():
 
     if args.A or (args.D and args.R and args.O):     # Step through all commands (happens if all false or all true)
         print('Running all commands')
-        if len(args.payload)==1:
+        if len(args.payloads)==1:
             parser.print_help(sys.stderr)
             print(f'{ERROR}Error ')
             sys.exit(1)

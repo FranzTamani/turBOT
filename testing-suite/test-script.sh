@@ -1,21 +1,23 @@
 #!/bin/bash
-
-turbot="../CLI/turbot.py"
-payload="../CLI/payloads/logTamperInject.s"
+set -x
+turbot="../../../CLI/turbot.py"
+payload="../../../CLI/payloads/logTamperInject.s"
 stages=2
 identicalSha=$()
 turbotFailure=$()
 for i in $(seq $stages); do
     pwd
-	echo "\033[0;34mRunning Test Stage: $i\033[0m";
+	echo "Running Test Stage: $i";
     pushd ./
     cd stage-$i
 	for folder in */; do
-		echo "\033[0;34m$folder\033[0m"; 	
+		echo "$folder"; 	
 		cd $folder;	
-		hash1=$(sha1sum $folder/output)	
-		make	
-		if $turbot $folder/output; then	
+		hash1=$(sha1sum output)	
+		make
+        pwd
+        ls ../../
+		if $turbot -A -p payload ./output; then	
 		    hash2=$(sha1sum $folder/output)	
             if [ "$hash1" = "$hash2" ]; then
                 echo "Sha sums are equal, test failed"
