@@ -13,12 +13,12 @@ for i in $(seq $stages); do
 	for folder in */; do
 		echo "$folder"; 	
 		cd $folder;	
-		hash1=$(sha1sum output)	
 		make
+		hash1=$(sha1sum output)	
         pwd
         ls ../../
-		if $turbot -A -p payload ./output; then	
-		    hash2=$(sha1sum $folder/output)	
+		if turbot -A -p "../../../CLI/payloads/logTamperInject.s" ./output; then	
+		    hash2=$(sha1sum $folder/output-reassembled.out)	
             if [ "$hash1" = "$hash2" ]; then
                 echo "Sha sums are equal, test failed"
                 ${identicalSha[@]} = "$folder"
