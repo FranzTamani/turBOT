@@ -21,6 +21,12 @@ INJECT_MODES = ["lazy","no_call"]
 
 done = False
 
+def cleanup(filename):
+    if os.path.exists(filename):
+        os.remove(filename)
+    else:
+        print(f"The file {filename} does not exist")
+
 def progress(message):
     global done
     done = False
@@ -165,55 +171,82 @@ def main():
     if args.A or (args.D and args.R and args.O):     # Step through all commands (happens if all false or all true)
         print('Running all commands')
 
-        if os.path.isdir(args.destination):
+        if args.destination == os.getcwd():
             dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
             obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
             rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
         else:
-            filename = parse_filename(args.destination)
-            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
-            obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
-            rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
+            dis_dest = f'{args.destination}-disassembled.s'
+            obf_dest = f'{args.destination}-obfuscated.s'
+            rea_dest = f'{args.destination}-reassembled.out'
 
         exit_code = disassemble(args.source, dis_dest)
-        if exit_code:
+        if exit_code != 0:
             print(f"{ERROR}Error encountered during disassembly. Halting...{NO_COLOUR}")
             sys.exit(exit_code)
+        print(dis_dest)
         exit_code = obfuscate(dis_dest, obf_dest, args.mode, args.payloads)
-        if exit_code:
+        if exit_code != 0:
             print(f"{ERROR}Error encountered during obfuscation. Halting...{NO_COLOUR}")
             sys.exit(exit_code)
+        print(obf_dest)
         exit_code = reassemble(obf_dest, rea_dest)
-        if exit_code:
+        if exit_code != 0:
             print(f"{ERROR}Error encountered during resassembly. Halting...{NO_COLOUR}")
             sys.exit(exit_code)
+        cleanup(dis_dest)
+        cleanup(obf_dest)
         sys.exit(0)
 
-    elif args.D:                        # Disassembles given binary
+    # These will not run if -A or -DRO flags are set
+    if args.D:                        # Disassembles given binary
         print('Running Disassemble Only')
         if args.destination == os.getcwd():
             dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
         else:
             dis_dest = args.destination
-        disassemble(args.source, dis_dest)
+        exit_code = disassemble(args.source, dis_dest)
+        if exit_code != 0:
+            print(f"{ERROR}Error encountered during disassembly. Halting...{NO_COLOUR}")
+            sys.exit(exit_code)
 
-    elif args.O:                        # Obfuscates given assembly file
+    if args.O:                        # Obfuscates given assembly file
         print('Running Obfuscate Only')
         if args.destination == os.getcwd():
             obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
         else:
             obf_dest = args.destination
-        obfuscate(args.source, obf_dest, args.mode, args.payloads)
+        if args.D:
+            exit_code = obfuscate(dis_dest, obf_dest, args.mode, args.payloads)
+        else:
+            exit_code = obfuscate(args.source, obf_dest, args.mode, args.payloads)
+            
+        if exit_code != 0:
+            print(f"{ERROR}Error encountered during obfuscation. Halting...{NO_COLOUR}")
+            sys.exit(exit_code)
 
-    elif args.R:                        # Reassembles given assembly file into an executable binary
+    if args.R:                        # Reassembles given assembly file into an executable binary
         print('Running Reassemble Only')
         if args.destination == os.getcwd():
             rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
         else:
             rea_dest = args.destination
-        reassemble(args.source, rea_dest)
+        if args.D or args.O:
+            if args.O:  # When file is obfuscated (means that it may have also been disassembled)
+                exit_code = reassemble(obf_dest, rea_dest)
+                cleanup(dis_dest)
+                cleanup(obf_dest)
+            else:       # Disassembled but not obfuscated
+                exit_code = reassemble(dis_dest, rea_dest)
+                cleanup(dis_dest)
+        else:
+            exit_code = reassemble(args.source, rea_dest)
 
-    else:
+        if exit_code != 0:
+            print(f"{ERROR}Error encountered during obfuscation. Halting...{NO_COLOUR}")
+            sys.exit(exit_code)
+
+    if not (args.D or args.O or args.R):    # If none of the flags are set print error
         parser.print_help(sys.stderr)
         sys.exit(1)
     
