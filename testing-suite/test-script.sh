@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+set +x
 turbot="../../../CLI/turbot.py"
 payload="../../../CLI/payloads/logTamperInject.s"
 stages=2
