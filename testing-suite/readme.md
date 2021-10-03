@@ -39,7 +39,7 @@ each test contains a makefile to reproduce compilation, as well as some other us
 there may be more commands available on a test-by-test basis, so read each makefile to understand what is available to you.
 
 ## CI Testing
-The Makefil included in the root of the testing suite will traverse through all the tests. It checks that the SHA is different to ensure that the file is new and not just a copy. It will also try running turbot with the -A flag. To execute the tests, run make:
+The Makefile included in the root of the testing suite will traverse through all the tests. It checks that the SHA is different to ensure that the file is new and not just a copy. It will also try running turbot with the -A flag. To execute the tests, run make:
 
 - `make` -- runs all tests and outputs logs into test-logs.txt
 
