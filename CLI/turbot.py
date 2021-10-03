@@ -151,11 +151,10 @@ def main():
                             ' to specify multiple payloads to add. These files must be named for the function to be called inside them. i.e. [func_name].s', metavar='payload', dest='payloads')
     parser.add_argument('-m', '--mode', action='store', default='lazy', choices=INJECT_MODES, help='Optional: The obfuscation mode. Ignored if -O is not present.\n(default: %(default)s)', dest='mode')
     parser.add_argument('source', nargs='?', default='', metavar='source', type=str, help='The dir where the file is located source/path/file.ext')
-    parser.add_argument('destination', nargs='?', default=os.getcwd(), metavar='destination', type=str, help='Optional: The dir where the output file will be stored "/output/path/filename-prefix.ext"' 
-                            'When "-A" flag is set file extensions are auto generated')
+    parser.add_argument('destination', nargs='?', default=os.getcwd(), metavar='destination', type=str, help='Optional: The dir where the output file will be stored "/output/path/filename-prefix.ext".'
+                            ' Please take note that the outputs for each flags are overwritten in the order of D -> O -> R')
 
     args = parser.parse_args(sys.argv[1:]) # Ignores the initial sys.argv which contains the path to this script
-    print(os.getcwd())
     if len(sys.argv)==1:
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -168,7 +167,10 @@ def main():
 
     if args.A or (args.D and args.R and args.O):     # Step through all commands (happens if all false or all true)
         print('Running all commands')
-
+        if len(args.payload)==1:
+            parser.print_help(sys.stderr)
+            print(f'{ERROR}Error ')
+            sys.exit(1)
         exit_code = disassemble(args.source, file_dest)
         if exit_code:
             print(f"{ERROR}Error encountered during disassembly. Halting...{NO_COLOUR}")
