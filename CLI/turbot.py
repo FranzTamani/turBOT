@@ -205,7 +205,7 @@ def main():
         else:
             reassemble(args.source, file_dest)
 
-    else:
+    if not (args.D or args.R or args.O):
         parser.print_help(sys.stderr)
         sys.exit(1)
     
