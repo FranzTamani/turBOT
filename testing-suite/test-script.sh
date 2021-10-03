@@ -2,9 +2,12 @@
 set +x
 turbot="../../../CLI/turbot.py"
 payload="../../../CLI/payloads/logTamperInject.s"
-stages=2
-identicalSha=$()
-turbotFailure=$()
+stages=1
+declare -a identicalSha
+declare -a turbotFailure
+identicalSha=()
+turbotFailure=()
+
 for i in $(seq $stages); do
     pwd
 	echo "Running Test Stage: $i";
@@ -18,35 +21,36 @@ for i in $(seq $stages); do
         pwd
         ls ../../
 		if turbot -A -p "../../../CLI/payloads/logTamperInject.s" ./output; then	
-		    hash2=$(sha1sum $folder/output-reassembled.out)	
+		    hash2=$(sha1sum output-reassembled.out)	
             if [ "$hash1" = "$hash2" ]; then
                 echo "Sha sums are equal, test failed"
-                ${identicalSha[@]}="$folder"
+                identicalSha+=($folder)
             else
                 echo "Test Successful"
             fi
         else
-            ${turbotFailure[@]}=$folder
+            turbotFailure+=($folder)
         fi
         cd ..
 	done
     popd
 done
 
-if [ ${identicalSha[@]} -eq 0]; then
-    echo "Success: All tests compiled with unique sha values successfully"
-else
+if [ ${#identicalSha[@]} -gt 0 ]; then
     echo "Failure: The following tests failed to generate a different sha"
-    for [i in ${identicalSha[@]}]; do 
-        echo "$i"
+    for shaTests in ${identicalSha[@]}; do 
+        echo "$shaTests"
     done
+else
+    echo "Success: All tests compiled with unique sha values successfully"
 fi
 
-if [ ${turbotFailure[@]} -eq 0]; then
-    echo "Success: turbot successfully ran all tests"
-else
+if [ ${#turbotFailure[@]} -gt 0 ]; then
     echo "Failure: turbot failed to execute the following tests"
-    for [i in ${turbotFailure[@]}]; do 
-        echo "$i"
+    echo ${identicalSha[@]}
+    for turbotTests in ${turbotFailure[@]}]; do 
+        echo "$turbotTests"
     done
+else
+    echo "Success: turbot successfully ran all tests"
 fi

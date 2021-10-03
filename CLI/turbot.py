@@ -180,9 +180,6 @@ def main():
             obf_dest = f'{args.destination}-obfuscated.s'
             rea_dest = f'{args.destination}-reassembled.out'
 
-        print(bool(os.path.isdir(args.destination)))
-        print(args.destination)
-        print(dis_dest)
         exit_code = disassemble(args.source, dis_dest)
         if exit_code != 0:
             print(f"{ERROR}Error encountered during disassembly. Halting...{NO_COLOUR}")
