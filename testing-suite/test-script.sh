@@ -21,7 +21,7 @@ for i in $(seq $stages); do
 		    hash2=$(sha1sum $folder/output-reassembled.out)	
             if [ "$hash1" = "$hash2" ]; then
                 echo "Sha sums are equal, test failed"
-                ${identicalSha[@]} = "$folder"
+                ${identicalSha[@]}="$folder"
             else
                 echo "Test Successful"
             fi
