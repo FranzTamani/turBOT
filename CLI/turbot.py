@@ -171,15 +171,15 @@ def main():
     if args.A or (args.D and args.R and args.O):     # Step through all commands (happens if all false or all true)
         print('Running all commands')
 
-        if os.path.isdir(args.destination):
+        if args.destination == os.getcwd():
             dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
             obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
             rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
         else:
-            filename = parse_filename(args.destination)
-            dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
-            obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
-            rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
+            dis_dest = f'{args.destination}-disassembled.s'
+            obf_dest = f'{args.destination}-obfuscated.s'
+            rea_dest = f'{args.destination}-reassembled.out'
+
         print(bool(os.path.isdir(args.destination)))
         print(args.destination)
         print(dis_dest)
