@@ -18,14 +18,13 @@ for i in $(seq $stages); do
 		cd $folder;	
 		make
 		hash1=$(sha1sum output)	
-        pwd
-        ls ../../
 		if turbot -A -p "../../../CLI/payloads/logTamperInject.s" ./output; then	
 		    hash2=$(sha1sum output-reassembled.out)	
             if [ "$hash1" = "$hash2" ]; then
                 echo "Sha sums are equal, test failed"
                 identicalSha+=($folder)
             else
+                ./output-reassembled.out
                 echo "Test Successful"
             fi
         else
