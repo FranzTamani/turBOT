@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-echo "installing turBOT..."
+echo "installing turbot..."
 
 source_file="turbot.py"
 output_file=$(echo $source_file | cut -d'.' -f 1)
@@ -8,7 +8,7 @@ output_file=$(echo $source_file | cut -d'.' -f 1)
 cp $source_file $output_file
 if [ $? != 0 ]
 then
-	echo "failed to copy turBOT script"
+	echo "failed to copy turbot script"
 	exit $?
 fi
 
@@ -26,5 +26,5 @@ then
 	exit $?
 fi
 
-echo "you have successfully installed turBOT!"
+echo "you have successfully installed turbot!"
 
