@@ -1,17 +1,23 @@
 FROM ubuntu:latest
 
-RUN apt-get update \
-    && apt-get install -y git software-properties-common
+ARG DEBIAN_FRONTEND=noninteractive
 
-
-RUN add-apt-repository ppa:mhier/libboost-latest 
-RUN echo "deb [trusted=yes] https://grammatech.github.io/gtirb/pkgs/focal ./" | tee -a /etc/apt/sources.list.d/gtirb.list 
 RUN apt-get update \
     && apt-get install -y \
+    git \
+    wget \
+    software-properties-common \
+    sudo
+
+
+RUN wget -O - https://download.grammatech.com/gtirb/files/apt-repo/conf/apt.gpg.key | apt-key add -
+RUN echo "deb https://download.grammatech.com/gtirb/files/apt-repo focal stable"| sudo tee -a /etc/apt/sources.list
+RUN apt-get update
+RUN apt-get install -y \
     ddisasm \
     python3 \
     rustc \
-    clang \
+    clang
 
 RUN git clone https://github.com/FranzTamani/turBOT.git
 
@@ -19,6 +25,5 @@ WORKDIR /turBOT/CLI
 
 RUN chmod +x ./install.sh
 RUN ./install.sh
-COPY turbot /usr/bin
 
 CMD [ "/bin/bash" ]
