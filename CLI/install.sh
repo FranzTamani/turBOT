@@ -26,5 +26,21 @@ then
 	exit $?
 fi
 
+man_page="turbot.1"
+
+sudo cp $man_page /usr/share/man/man1/
+if [ $? != 0 ]
+then
+	echo "failed to copy turbot man page"
+	exit $?
+fi
+
+sudo mandb
+if [ $? != 0 ]
+then
+	echo "failed to update MAN database"
+	exit $?
+fi
+
 echo "you have successfully installed turbot!"
 
