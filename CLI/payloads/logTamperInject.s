@@ -40,7 +40,7 @@ logTamperInject:
     # Do the write
     syscall
 
-    # If you want to do more writing, here's where to to it
+    # If you want to do more writing, here's where to do it
     
     # syscall 3 is close
     mov rax, 3
