@@ -1,7 +1,7 @@
 # HOW TO USE
 
 ### Install Terraform
-Before proceeding, please configure the Terraform CLI onto your local machine thoruhg: https://learn.hashicorp.com/tutorials/terraform/install-cli
+Before proceeding, please configure the Terraform CLI through:  https://learn.hashicorp.com/tutorials/terraform/install-cli
 
 ### Export the following environment variables using the details given on the AWS account
 
