@@ -1,5 +1,8 @@
 # HOW TO USE
 
+### Install Terraform
+Before proceeding, please configure the Terraform CLI onto your local machine thoruhg: https://learn.hashicorp.com/tutorials/terraform/install-cli
+
 ### Export the following environment variables using the details given on the AWS account
 
 ```
@@ -15,6 +18,7 @@ Navigate to "testing-infra" folder and run the following:
 terraform init
 ```
 The terraform init command will download all the dependecies required to deploy the infrastructure to AWS.
+NOTE: YOU MUST CREATE A KEY PAIR INSIDE THE AWS CONSOLE TO REFERENCE HERE.
 
 ```
 terraform plan \
