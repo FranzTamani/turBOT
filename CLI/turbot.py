@@ -17,7 +17,7 @@ ERROR = '\033[91m'
 NO_COLOUR = '\x1b[0m'
 
 # Inject modes:
-INJECT_MODES = ["lazy","no_call"]
+INJECT_MODES = ["lazy","no_call","custom"]
 
 done = False
 
@@ -73,14 +73,14 @@ def reassemble(source_dir, output_dir):
         else:
             print(f"{ERROR}ERROR: Reassembly target file not found{NO_COLOUR}")
             return 2
-        
+
         args = ["g++", "-pthread", "-no-pie", "-o", output_dir, source_dir] # Console Commands Go Here, split strings
         p = subprocess.Popen(args, stdout=subprocess.PIPE)
         p.wait() # Wait for subprocess to finish executing
         exit_code = p.poll()
         # Return exit code to know if to proceed
         return exit_code
-        
+
     except Exception as e:
         print(e)
         print(f"{ERROR}An error occured during the compilation proccess{NO_COLOUR}")
@@ -112,12 +112,12 @@ def obfuscate(source_dir, output_dir, inject_mode, inject_files):
 
         # Set up sed parameters:
         if inject_mode=="lazy":
-            call_start = "/main:/a "
+            call_start = "/^main:/a "
         elif inject_mode=="no_call":
             call_start = "/ret/a "
         else:
             # Unhandled inject mode
-            return EXCEPTION_ERROR_CODE 
+            return EXCEPTION_ERROR_CODE
         file_inject_params = []
         for i in range(len(inject_files)):
             method_name = parse_filename(inject_files[i])
@@ -131,6 +131,30 @@ def obfuscate(source_dir, output_dir, inject_mode, inject_files):
         # Return exit code to know if to proceed
         return exit_code
         
+    except Exception as e:
+        print(e)
+        print(f"{ERROR}An error occured during the obfuscation proccess{NO_COLOUR}")
+        # Return exception error code
+        return EXCEPTION_ERROR_CODE
+
+def custom_obfuscate(source_dir, output_dir, script):
+    if not script:
+        print(f"{ERROR}ERROR: .sed script file must be supplied if using custom inject mode")
+        return 22
+
+    try:
+        if os.path.isfile(source_dir):
+            print("Program is currently obfuscating the assembly file")
+        else:
+            print(f"{ERROR}ERROR: Obfuscation target file not found{NO_COLOUR}")
+            return 2
+        
+        with open(output_dir, "w") as output_file:
+            p = subprocess.Popen(["sed", "-f", script, source_dir], stdout=output_file)
+            p.wait()
+            exit_code = p.poll()
+        return exit_code
+    
     except Exception as e:
         print(e)
         print(f"{ERROR}An error occured during the obfuscation proccess{NO_COLOUR}")
@@ -155,6 +179,7 @@ def main():
     parser.add_argument('-p', "--payload", action='append', help='Optional: Paths to .s files to be used for obfuscation mode as payloads. This flag can be used multiple times'
                             ' to specify multiple payloads to add. These files must be named for the function to be called inside them. i.e. [func_name].s', metavar='payload', dest='payloads')
     parser.add_argument('-m', '--mode', action='store', default='lazy', choices=INJECT_MODES, help='Optional: The obfuscation mode. Ignored if -O is not present.\n(default: %(default)s)', dest='mode')
+    parser.add_argument('-s', '--script', action='store', help='Provide a .sed script for the custom inject mode to use. Required if inject mode is set to \'custom\', ignored otherwise', dest='script')
     parser.add_argument('source', nargs='?', default='', metavar='source', type=str, help='The dir where the file is located source/path/file.ext')
     parser.add_argument('destination', nargs='?', default=os.getcwd(), metavar='destination', type=str, help='Optional: The dir where the output file will be stored "/output/path/filename-prefix.ext"' 
                             'When "-A" flag is set file extensions are auto generated')
@@ -171,7 +196,7 @@ def main():
     if args.A or (args.D and args.R and args.O):     # Step through all commands (happens if all false or all true)
         print('Running all commands')
 
-        if args.destination == os.getcwd():
+        if os.path.abspath(args.destination) == os.getcwd():
             dis_dest = os.path.join(args.destination, f'{filename}-disassembled.s')
             obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
             rea_dest = os.path.join(args.destination, f'{filename}-reassembled.out')
@@ -185,7 +210,10 @@ def main():
             print(f"{ERROR}Error encountered during disassembly. Halting...{NO_COLOUR}")
             sys.exit(exit_code)
         print(dis_dest)
-        exit_code = obfuscate(dis_dest, obf_dest, args.mode, args.payloads)
+        if args.mode == "custom":
+            exit_code = custom_obfuscate(dis_dest, obf_dest, args.script)
+        else:
+            exit_code = obfuscate(dis_dest, obf_dest, args.mode, args.payloads)
         if exit_code != 0:
             print(f"{ERROR}Error encountered during obfuscation. Halting...{NO_COLOUR}")
             sys.exit(exit_code)
@@ -212,15 +240,20 @@ def main():
 
     if args.O:                        # Obfuscates given assembly file
         print('Running Obfuscate Only')
-        if args.destination == os.getcwd():
+        if os.path.abspath(args.destination) == os.getcwd():
             obf_dest = os.path.join(args.destination, f'{filename}-obfuscated.s')
         else:
             obf_dest = args.destination
         if args.D:
-            exit_code = obfuscate(dis_dest, obf_dest, args.mode, args.payloads)
+            target = dis_dest
         else:
-            exit_code = obfuscate(args.source, obf_dest, args.mode, args.payloads)
-            
+            target = args.source
+
+        if args.mode == "custom":
+            exit_code = custom_obfuscate(target, obf_dest, args.script)
+        else:
+            exit_code = obfuscate(target, obf_dest, args.mode, args.payloads)
+
         if exit_code != 0:
             print(f"{ERROR}Error encountered during obfuscation. Halting...{NO_COLOUR}")
             sys.exit(exit_code)
