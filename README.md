@@ -17,3 +17,5 @@ To run all integration tests inside the testing suite. Navigate to ./testing-sui
 Alternatively, you can run the script directly and add your own post processing to the console output.
 
 - `./test-script.sh`
+
+To read more about our test suite [Click Here](https://github.com/FranzTamani/turBOT/blob/main/testing-suite/readme.md)
