@@ -18,4 +18,4 @@ Alternatively, you can run the script directly and add your own post processing 
 
 - `./test-script.sh`
 
-To read more about our test suite [Click Here](https://github.com/FranzTamani/turBOT/blob/main/testing-suite/readme.md)
+To read more about our test suite see the [README](https://github.com/FranzTamani/turBOT/blob/main/testing-suite/readme.md)
