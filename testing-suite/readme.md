@@ -1,26 +1,26 @@
 # BOT testing suite
 
-this testing suite serves a few purposes:
+This testing suite serves a few purposes:
 
-1. ensure the integrity of BOT's operation
-2. provide incremental goals for development and testing
-3. emulate real world scenarios that may be encountered
+1. Ensure the integrity of BOT's operation
+2. Provide incremental goals for development and testing
+3. Emulate real world scenarios that may be encountered
 
-the tests are designed to be passed in order from the first, to last as they have been numbered. they will cover things ranging from hello world written in different languages with different compilers/toolchains all the way to more "realistic" applications that will interact with the OS more intimately as well as maintain a more complex architecture.
+The tests are designed to be passed in their number order. The tests cover a range of binary characteristics, ranging from hello world written in different languages with different compilers/toolchains, to more "realistic" applications that will interact with the OS more intimately as well as maintain a more complex architecture.
 
-there are some assumptions that we are operating under, however:
+There are some assumptions that we are operating under, and they are as follows:
 
-- all binaries will be compiled for x86 platforms, 32 and 64 bit
-- binaries should be compiled to the ELF format, and be runnable on a linux desktop environment (tested on Manjaro Linux)
+- All binaries will be compiled for x86 platforms, 32 and 64 bit
+- Binaries should be compiled to the ELF format, and be executable on a Linux desktop environment (tested on Manjaro Linux)
 
-inside each folder will contain a:
+Each folder contains:
 
-- readme explaining the binary and it's features as well as any other important details
-- makefile for compiling the binary fresh, if one so desires
-- source code
-- the binary itself
+- A readme explaining the binary and it's features as well as any other important details
+- A makefile for compiling the binary fresh, if one so desires
+- The source code
+- The binary
 
-## requirements
+## Requirements
 - make
 - gcc
 - clang
@@ -29,14 +29,16 @@ inside each folder will contain a:
 - strip
 - upx (provided in `/bin`)
 
-## usage
-each test contains a makefile to reproduce compilation, as well as some other useful functions. there are:
-we recommend using _**Ubuntu 12.0.1 or later**
+## Usage
+Each test contains a makefile to reproduce compilation, as well as some other useful functions. 
+We recommend using *Ubuntu 12.0.1 or later*
+
+Available actions for all tests are:
 - `make` -- compile and run
 - `make run` -- simply run output binary
 - `make memleaktest` -- run memory leak test with valgrind (on tests that require it)
 
-there may be more commands available on a test-by-test basis, so read each makefile to understand what is available to you.
+There may be more commands available on a test-by-test basis, so read each makefile to understand what is available to you.
 
 ## CI Testing
 The Makefile included in the root of the testing suite will traverse through all the tests. It checks that the SHA is different to ensure that the file is new and not just a copy. It will also try running turbot with the -A flag. To execute the tests, run make:
@@ -47,12 +49,9 @@ Alternatively, you can run the script directly and add your own post processing 
 
 - `./test-script.sh`
 
-# How we test
-In this current version of turBOT we have a test suite of 26 tests that we run against our solution to test it's efficacy. To use the testing suite due to clang++ and it's Ubuntu version we recommend using _**Ubuntu 12.0.1 or later**_ as we cannot guarantee that all the test will pass on earlier builds.
-
 ***
 
-# Current solution Results
+# Current solution results
 Of the 26 tests, 22 were successful, 4 failed.
 The failing tests were:
 - 21: Compressed - g++
@@ -60,7 +59,7 @@ The failing tests were:
 - 23: Shared library - g++
 - 24: Shared library - clang++
 
-# Failures
+# Why did some of the tests fail?
 
 ## 21 + 22: Compressed (packed) executables
 Currently as of build 1.5.2 of ddisasm, compresseed binaries are unable to be interrupted by it and therefore cannot be disassembled. This is due to ddisasm unable to replicate the given program. Until a version of ddisasm is available to do this. Turbot will not work with compressed/packed executables.
