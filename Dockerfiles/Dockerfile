@@ -1,4 +1,4 @@
-FROM ubuntu:impish-20211015
+FROM ubuntu:impish-20220128
 
 ARG DEBIAN_FRONTEND=noninteractive
 
